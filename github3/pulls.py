@@ -485,6 +485,21 @@ class PullReview(models.GitHubCore):
     def _repr(self):
         return '<Pull Request Review [{0}]>'.format(self.id)
 
+    @requires_auth
+    def submit(self, body, event):
+        """Submit this pull request review.
+
+        :param str body: The body text of the pull request review.
+        :param str event: The review action (event) to perform; can
+            be one of APPROVE, REQUEST_CHANGES, or COMMENT. 
+        :rtype: :class:`~github3.pulls.PullReview`
+        """
+        headers = {'Accept': 'application/vnd.github.black-cat-preview+json'}
+        url = self._build_url('reviews', str(self.id), 'events', base_url=self.pull_request_url)
+        json = self._json(self._post(url, data={
+            'body': body, 'event': event
+        }, headers=headers), 201)
+        return self._instance_or_null(PullReview, json)
 
 class ReviewComment(models.BaseComment):
 
